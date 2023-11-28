@@ -261,8 +261,6 @@ const char ** scan_tree_file(char * text, const char ** pointers_to_nodes, const
                 nil_index = is_nil(text, find_nil_index);
                 if(nil_index > 0 || text[find_nil_index] == '(')
                 {
-                    //printf("FOUND - %c%c\n", text[find_nil_index + 2], text[find_nil_index + 3]);
-                    //printf("nil_index = %d\n", nil_index);
                     break;
                 }
             }
@@ -272,7 +270,7 @@ const char ** scan_tree_file(char * text, const char ** pointers_to_nodes, const
                 text[nil_index - 1] = '\0';
             }
 
-            bracket_index = find_bracket(text, i - 1, file_size);
+            bracket_index = find_bracket(text, i, file_size);
 
             if(bracket_index == 1)
             {
