@@ -1,3 +1,5 @@
+// TD: How to build project? Please create a Makfile
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <TXLib.h>
@@ -6,11 +8,23 @@ const int MULTIPLIER = 2;
 const int START_SIZE = 20;
 const int ERROR_CODE = 127;
 
+/*
+    TD: For next project better to replace "const char *"
+        with typedef to easily change type of tree nodes. It can be
+        applied to any data structure that you write.
+*/
+
 typedef struct TreeNode{
     const char * data = 0;
     struct TreeNode* left;
     struct TreeNode* right;
 } TreeNode;
+
+/*
+    TD: rename to smth like "create_blablalba"
+    "operator new" is associated with operator overloading (C++ feature).
+    It can cause confusion.
+*/
 
 TreeNode * operator_new(const char * data);
 TreeNode * add_node(TreeNode * tree);
@@ -32,8 +46,31 @@ int find_bracket(const char * text, int index, int file_size);
 int count_text_symbols(const char * text, int file_size);
 void clean_buffer();
 
+/*
+    TD: Remove internals from main.
+        Divide program into clear modules like:
+
+            reading module:
+                reads database and creates tree
+
+            tree module:
+                processes all operations with tree (add node, add child)
+
+            akinator game module:
+                is responsible for all modes 
+                    (play mode,
+                    definition mode,
+                    comparison mode,
+                    show database mode,
+                    dump database,
+                    exit)
+
+        It's just example. Try to make clearer border between differen
+        parts of your program. Remember, like in quadratic equation, solve module, output module...
+*/
 int main()
 {
+    // TD: hardcode filename. make it configurable from cmd, it's easy!
     FILE * fp_read_tree = fopen("tree_data.txt", "rb");
     if(fp_read_tree == NULL)
     {
@@ -47,7 +84,28 @@ int main()
     fread(text, sizeof(char), file_size, fp_read_tree);
 
     int symbols = count_text_symbols(text, file_size);
+
+    /*
+        TD: Rename. pointer_to_nodes in this context seems like
+            pointer to TreeNode.
+
+            Call thing that is contatined in this array somehow.
+
+                like: token_ptr* token_array;
+
+            Double pointers are terrifying. Please use typedef for
+            easier reading. 
+    */
     const char ** pointers_to_nodes = (const char**)calloc(symbols, sizeof(char));
+
+    /*
+        TD: May be put all this info about text file into structure?
+            Like structure that associated with one database reading session.
+
+            So many parameteres are kinda confusing.
+
+            You will easier free all resources that are associated with reading session.
+    */
     pointers_to_nodes = scan_tree_file(text, pointers_to_nodes, symbols, file_size);
 
     TreeNode * tree = (TreeNode*)calloc(1, sizeof(TreeNode));
@@ -100,7 +158,24 @@ TreeNode * operator_new(const char * data)
 
 TreeNode * add_node(TreeNode * tree)
 {
+    /*
+        TD: One of akinator's tasks is to replace printf
+            with some speaker function (txSpeak, eSpeak, festival...)
+
+            So it's better to use more abstract function to output messages (like output("Who is this?"));
+
+            Then when you'll need to go replace printf with speaker function,
+            you'll just need to replace implementation of output() function, and to change nothing
+            in the rest of code.  
+    */
     printf("Who is this???\n");
+
+    /*
+        TD:
+        1) copypaste of "calloc + scanf"
+        2) check return value of calloc. please write wrapper of calloc that does it.
+        3) why "START_SIZE * 2"?
+    */
 
     const char* differ = (const char*)calloc(START_SIZE * 2, sizeof(char));
     const char* new_person = (const char*)calloc(START_SIZE * 2, sizeof(char));
@@ -146,6 +221,16 @@ void tree_print(TreeNode * node_t)
 
     if(node_t != NULL)
     {
+        /*
+            TD: Unconvinient to write every time this boilerplate code, like
+                "txSetConsoleAttr(FOREGROUND_LIGHTGRAY | BACKGROUND_BLACK);"
+            
+                Make wrapper around printf that allows to set color of
+                text and then automatically return standard color.
+
+                Should look like:
+                color_printf(RED, "How are you?");
+        */
         txSetConsoleAttr(FOREGROUND_RED | BACKGROUND_BLACK);
         printf("(");
         txSetConsoleAttr(FOREGROUND_LIGHTGRAY | BACKGROUND_BLACK);
@@ -211,14 +296,18 @@ int scan_answers()
     const char * str = (const char*)calloc(START_SIZE, sizeof(char));
     str = my_scanf();
 
+    /*
+        TD: length of "yes" can be compute in compile time using sizeof
+    */
     if(strncmp(str, "yes", strlen("yes")) != 0 && strncmp(str, "no", strlen("no")) != 0)
     {
         printf("You can only answer yes or no \n");
     }
 
+    // TD: do just one comparison (now it's one here and one in "if" above)
     if(strcmp(str, "yes") == 0)
     {
-        return 1;
+        return 1; // TD:: magic number
     }
 
     if(strcmp(str, "no") == 0)
@@ -304,7 +393,7 @@ TreeNode * build_tree(const char ** pointers_to_nodes, TreeNode * tree_node, int
     return tree_node;
 }
 
-char * my_scanf()
+char * my_scanf() // TD: why not standard getline()?
 {
     int i = 0;
     int start_size = START_SIZE;
@@ -361,8 +450,13 @@ int find_bracket(const char * text, int index, int file_size)
     return 0;
 }
 
+/*
+    TD: why return index?
+        it's more natural for so called function to return bool
+*/
 int is_nil(const char * text, int index)
 {
+    // TD: strncmp()?
     if(text[index] == 'n' && text[index + 1] == 'i' && text[index + 2] == 'l')
     {
        /*
